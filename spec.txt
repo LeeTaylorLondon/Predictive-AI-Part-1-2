@@ -1,3 +1,15 @@
+Part II/III
+* Impute missing values using KNN
+* Impute missing values using MICE
+* Train a regression model to predict 'house median price', given an 'area',
+  on the KNN-imputed dataset - Note its performance
+* Train a regression model to predict 'house median price', given an 'area',
+  on the MICE-imputed dataset - Note its performance
+
+
+...
+
+
 Part II: Data Imputation and Predictive modelling.
 Dataset:  we are going to use the same Houses data set from part I of this exercise.
 
@@ -11,8 +23,12 @@ same where 0.5%  of the data is missing at random [Houses_0.5_MAR Links to an ex
 the effects of two imputation methods: KNN imputation and MICE, in combination with the learning task. Specifically,
 you are required to:
 
-impute Houses_0.5_MAR Links to an external site. using KNN imputation. Then train a regression model for predicting
-house median price in an area, using the imputed dataset for training and note its performance, i.e, how well it predicts
-median house values. Call this model M1 impute Houses_0.5_MAR Links to an external site.using MICE (Iterative Imputation).
-Then again train a regression model and note its performance. Call this model M2 Compare M1 and M2. Are there differences?
-if so, why do you think they provide different performance? which one would you choose?
+Impute Houses_0.5_MAR using KNN imputation.
+Then train a regression model for predicting house median price in an area,
+ using the imputed dataset for training and note its performance, i.e, how well it predicts median house values.
+Call this model M1 impute Houses_0.5_MAR Links to an external site.
+Using MICE (Iterative Imputation). Then again train a regression model and note its performance.
+Call this model M2 Compare M1 and M2.
+Are there differences?
+If so, why do you think they provide different performance?
+Which one would you choose?
