@@ -19,9 +19,9 @@ ful_data = pd.read_csv("houses.csv")
 all_data = [mar_data, ful_data]
 
 # > Create correlation matrices
-md_corr = mar_data.corr()
-fd_corr = ful_data.corr()
-al_corr = [md_corr, fd_corr]
+# md_corr = mar_data.corr()
+# fd_corr = ful_data.corr()
+# al_corr = [md_corr, fd_corr]
 
 # > Fill missing data KNN
 imputer        = KNNImputer()  # Default nn=5
@@ -34,7 +34,7 @@ imputer = IterativeImputer(missing_values=np.nan, add_indicator=False,
                            random_state=0, n_nearest_features=5,
                            sample_posterior=True)
 imputer.fit(mar_data)
-imputer.transform(mar_filled_mice)
+mar_filled_mice = imputer.transform(mar_filled_mice)
 
 # > Container for imputed datasets
 imputed_data = [pd.DataFrame(mar_filled_knn, columns=("index", "median_house_value","median_income","housing_median_age",
@@ -48,49 +48,51 @@ imputed_data = [pd.DataFrame(mar_filled_knn, columns=("index", "median_house_val
 print(f"{type(imputed_data[0])}\n{imputed_data[0].columns}")
 
 def xtraintest(imputed_dataset, target='median_house_value', debug=False):
+    """ Passed an imputed dataset, training and testing datasets are returned """
     X_train_ = imputed_dataset.copy().drop([target, 'index'], axis=1)
     X_test_  = ful_data.copy().drop(target, axis=1)
     if debug: print(f"X_train.shape={X_train_.shape}, X_test.shape={X_test_.shape}")
     return X_train_, X_test_
 
-# > Train Test Datasets
-# X_train, X_test, y_train_true, y_test_true = train_test_split(X, y, test_size=0.33, random_state=42)
-# X_train = imputed_data[0].copy().drop(['median_house_value', 'index'], axis=1)
-# X_test  = ful_data.copy().drop('median_house_value', axis=1)
-
-# > (KNN-Imputed) Train & Test dataset
-X_train, X_test = xtraintest(imputed_data[0])
-print(f"{X_train.shape} {X_test.shape}")
-
-# > (MICE-Imputed) Train & Test dataset
-X_train, X_test = xtraintest(imputed_data[1])
-print(f"{X_train.shape} {X_test.shape}")
-
-# > Original Complete Train & Test dataset
+# > Original complete dataset into train & test datasets
 y_train_true = ful_data['median_house_value']
 y_test_true  = ful_data['median_house_value']
 
-# > Debug
-print(f"{type(ful_data)}\n{ful_data.columns}")
-
-# > Regression model
-np.random.seed(100)
-clf = LinearRegression()
-clf.fit(X_train.values, y_train_true.values)
-y_test_pred = clf.predict(X_test)
-print("RMSE: {0:.3}".format(mean_squared_error(y_test_true, y_test_pred)))
-print("R^2: {0:.2}".format(r2_score(y_test_true, y_test_pred)))
-
-
-# > Inspect datasets
-# printdf(mar_filled)
-# print("\n...\n")
-# printdf(mar_data)
+def traintestmodel(tup, iname):
+    """ Create, train, and evaluate a regression model """
+    X_train, X_test = tup[0], tup[1]
+    # Create reproducible regression model
+    np.random.seed(100)
+    clf = LinearRegression()
+    # Train model
+    clf.fit(X_train.values, y_train_true.values)
+    y_test_pred = clf.predict(X_test.values)
+    print(f"{iname}-Imputed Dataset Results:")
+    print("RMSE: {0:.3}".format(mean_squared_error(y_test_true, y_test_pred)))
+    print("R^2: {0:.2}".format(r2_score(y_test_true, y_test_pred)))
+    print()
 
 
 if __name__ == '__main__':
-    print('\n...\n')
-    print(f"data.shape      = {mar_data.shape}")
-    print(f"data_knn.shape  = {mar_filled_knn.shape}")
-    print(f"data_mice.shape = {mar_filled_mice.shape}")
+    # > Train regression models on the imputed datasets respectively
+    traintestmodel(xtraintest(imputed_data[0]), "KNN")
+    traintestmodel(xtraintest(imputed_data[1]), "MICE")
+
+    # > Debug information
+    # print('\n...\n')
+    # print(f"data.shape      = {mar_data.shape}")
+    # print(f"data_knn.shape  = {mar_filled_knn.shape}")
+    # print(f"data_mice.shape = {mar_filled_mice.shape}")
+
+    # > Debug information
+    # > (KNN-Imputed) Train & Test dataset
+    # X_train, X_test = xtraintest(imputed_data[0])
+    # print(f"{X_train.shape} {X_test.shape}")
+
+    # > (MICE-Imputed) Train & Test dataset
+    # X_train, X_test = xtraintest(imputed_data[1])
+    # print(f"{X_train.shape} {X_test.shape}")
+
+    # > Debug info about the original complete dataset
+    # print(f"{type(ful_data)}\n{ful_data.columns}")
     pass
