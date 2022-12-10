@@ -48,7 +48,7 @@ imputed_data = [pd.DataFrame(mar_filled_knn, columns=("index", "median_house_val
 print(f"{type(imputed_data[0])}\n{imputed_data[0].columns}")
 
 def xtraintest(imputed_dataset, target='median_house_value', debug=False):
-    X_train_ = imputed_dataset.copy().drop([target])
+    X_train_ = imputed_dataset.copy().drop([target, 'index'], axis=1)
     X_test_  = ful_data.copy().drop(target, axis=1)
     if debug: print(f"X_train.shape={X_train_.shape}, X_test.shape={X_test_.shape}")
     return X_train_, X_test_
@@ -57,11 +57,18 @@ def xtraintest(imputed_dataset, target='median_house_value', debug=False):
 # X_train, X_test, y_train_true, y_test_true = train_test_split(X, y, test_size=0.33, random_state=42)
 # X_train = imputed_data[0].copy().drop(['median_house_value', 'index'], axis=1)
 # X_test  = ful_data.copy().drop('median_house_value', axis=1)
+
+# > (KNN-Imputed) Train & Test dataset
 X_train, X_test = xtraintest(imputed_data[0])
 print(f"{X_train.shape} {X_test.shape}")
+
+# > (MICE-Imputed) Train & Test dataset
+X_train, X_test = xtraintest(imputed_data[1])
+print(f"{X_train.shape} {X_test.shape}")
+
+# > Original Complete Train & Test dataset
 y_train_true = ful_data['median_house_value']
 y_test_true  = ful_data['median_house_value']
-
 
 # > Debug
 print(f"{type(ful_data)}\n{ful_data.columns}")
