@@ -1,4 +1,5 @@
 # Author: Lee Taylor, ST Number: 190211479
+import time
 import numpy                    as np
 import pandas                   as pd
 from sklearn.impute             import KNNImputer
@@ -34,8 +35,6 @@ md_corr = mar_data.corr()
 fd_corr = ful_data.corr()
 al_corr = [md_corr, fd_corr]
 
-''' All commented out '''
-
 # > Fill missing data KNN
 imputer        = KNNImputer()  # Default nn=5
 mar_filled_knn = imputer.fit_transform(mar_data_new.__copy__())
@@ -68,18 +67,28 @@ def xtraintest(imputed_dataset, target='median_house_value', debug=False):
     return X_train_, Y_train_
 
 # > Original complete dataset into train & test datasets
-X_test = ful_data_new.copy().drop('median_house_value', axis=1)
-Y_test = ful_data_new['median_house_value']
+X_test = ful_data_omitted.copy().drop('median_house_value', axis=1)
+Y_test = ful_data_omitted['median_house_value']
 print(f"Shapes:\n"
       f"X_test -> {X_test.shape}\n"
       f"Y_test -> {Y_test.shape}")
 
+def print_execution_time(func):
+    def wrapper(*args, **kwargs):
+        start_time = time.perf_counter()
+        result = func(*args, **kwargs)
+        end_time = time.perf_counter()
+        print(f"Execution time: {end_time - start_time:.6f} seconds")
+        return result
+    return wrapper
+
+@print_execution_time
 def traintestmodel(tup, iname):
     """ Create, train, and evaluate a regression model """
     X_train, Y_train = tup[0], tup[1]
-    print(f"traintestmodel()\n"
+    print(f"\ntraintestmodel()\n"
           f"X_train.shape {X_train.shape}\n"
-          f"Y_train.shape {Y_train.shape}")
+          f"Y_train.shape {Y_train.shape}\n")
     # Create reproducible regression model
     np.random.seed(100)
     clf = LinearRegression()
@@ -90,7 +99,7 @@ def traintestmodel(tup, iname):
     print(f"{iname}-Imputed Dataset Results:")
     print("MSE: {0:.3}".format(mean_squared_error(Y_test, y_test_pred)))
     print("R^2: {0:.2}".format(r2_score(Y_test, y_test_pred)))
-    print(f"-------------------------------")
+    print(f"-------------------------------\n")
     return clf
 
 
