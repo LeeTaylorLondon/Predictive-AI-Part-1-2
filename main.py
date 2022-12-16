@@ -18,22 +18,35 @@ mar_data = pd.read_csv("houses_0.5_MAR.csv")
 ful_data = pd.read_csv("houses.csv")
 all_data = [mar_data, ful_data]
 
-# # > Create correlation matrices
-# md_corr = mar_data.corr()
-# fd_corr = ful_data.corr()
-# al_corr = [md_corr, fd_corr]
+# print(mar_data.shape)
+# print(ful_data.shape)
+
+# > Omit the last 2500 rows from mar_data and ful_data
+mar_data_new = mar_data.iloc[:-2500, :]
+ful_data_new = ful_data.iloc[:-2500, :]
+
+# > Save the last 2500 rows to another dataframe
+mar_data_omitted = mar_data.iloc[-2500:, :]
+ful_data_omitted = ful_data.iloc[-2500:, :]
+
+# > Create correlation matrices
+md_corr = mar_data.corr()
+fd_corr = ful_data.corr()
+al_corr = [md_corr, fd_corr]
+
+''' All commented out '''
 
 # > Fill missing data KNN
 imputer        = KNNImputer()  # Default nn=5
-mar_filled_knn = imputer.fit_transform(mar_data)
+mar_filled_knn = imputer.fit_transform(mar_data_new.__copy__())
 del imputer  # Prevent re-using incorrect imputer in next section
 
 # > Fill missing data MICE
-mar_filled_mice = mar_data.__copy__()
+mar_filled_mice = mar_data_new.__copy__()
 imputer = IterativeImputer(missing_values=np.nan, add_indicator=False,
                            random_state=0, n_nearest_features=5,
                            sample_posterior=True)
-imputer.fit(mar_data)
+imputer.fit(mar_data_new)
 mar_filled_mice = imputer.transform(mar_filled_mice)
 
 # > Container for imputed datasets
@@ -49,52 +62,61 @@ imputed_data = [pd.DataFrame(mar_filled_knn, columns=("index", "median_house_val
 
 def xtraintest(imputed_dataset, target='median_house_value', debug=False):
     """ Passed an imputed dataset, training and testing datasets are returned """
-    X_train_ = imputed_dataset.copy().drop([target, 'index'], axis=1)
-    X_test_  = ful_data.copy().drop(target, axis=1)
-    if debug: print(f"X_train.shape={X_train_.shape}, X_test.shape={X_test_.shape}")
-    return X_train_, X_test_
+    X_train_ = imputed_dataset.copy().drop([target, 'index'], axis=1)   # (~18000, 8)
+    Y_train_ = ful_data_new.copy()[target]                              # (~18000, 1)
+    if debug: print(f"X_train.shape={X_train_.shape}, Y_train.shape={Y_train_.shape}")
+    return X_train_, Y_train_
 
 # > Original complete dataset into train & test datasets
-y_train_true = ful_data['median_house_value']
-y_test_true  = ful_data['median_house_value']
+X_test = ful_data_new.copy().drop('median_house_value', axis=1)
+Y_test = ful_data_new['median_house_value']
+print(f"Shapes:\n"
+      f"X_test -> {X_test.shape}\n"
+      f"Y_test -> {Y_test.shape}")
 
 def traintestmodel(tup, iname):
     """ Create, train, and evaluate a regression model """
-    X_train, X_test = tup[0], tup[1]
+    X_train, Y_train = tup[0], tup[1]
+    print(f"traintestmodel()\n"
+          f"X_train.shape {X_train.shape}\n"
+          f"Y_train.shape {Y_train.shape}")
     # Create reproducible regression model
     np.random.seed(100)
     clf = LinearRegression()
     # Train model
-    clf.fit(X_train.values, y_train_true.values)
+    clf.fit(X_train.values, Y_train.values)
     y_test_pred = clf.predict(X_test.values)
     print(f"-------------------------------")
     print(f"{iname}-Imputed Dataset Results:")
-    print("MSE: {0:.3}".format(mean_squared_error(y_test_true, y_test_pred)))
-    print("R^2: {0:.2}".format(r2_score(y_test_true, y_test_pred)))
+    print("MSE: {0:.3}".format(mean_squared_error(Y_test, y_test_pred)))
+    print("R^2: {0:.2}".format(r2_score(Y_test, y_test_pred)))
     print(f"-------------------------------")
     return clf
 
 
 if __name__ == '__main__':
-    # > Train regression models on the imputed datasets respectively
-    m1 = traintestmodel(xtraintest(imputed_data[0]), "KNN")
-    m2 = traintestmodel(xtraintest(imputed_data[1]), "MICE")
-
     # # > Debug information
     # print('\n...\n')
     # print(f"data.shape      = {mar_data.shape}")
     # print(f"data_knn.shape  = {mar_filled_knn.shape}")
     # print(f"data_mice.shape = {mar_filled_mice.shape}")
 
-    # > Debug information
+    # # > Debug information
     # # > (KNN-Imputed) Train & Test dataset
-    # X_train, X_test = xtraintest(imputed_data[0])
-    # print(f"{X_train.shape} {X_test.shape}")
-
+    # X_train, Y_train = xtraintest(imputed_data[0])
+    # print(f"KNN:\n"
+    #       f"x_train -> {X_train.shape}\n"
+    #       f"x_test -> {Y_train.shape}")
+    #
     # # > (MICE-Imputed) Train & Test dataset
-    # X_train, X_test = xtraintest(imputed_data[1])
-    # print(f"{X_train.shape} {X_test.shape}")
+    # X_train, Y_train = xtraintest(imputed_data[1])
+    # print(f"MICE:\n"
+    #       f"x_train -> {X_train.shape}\n"
+    #       f"x_test -> {Y_train.shape}")
 
-    # # > Debug info about the original complete dataset
-    # print(f"{type(ful_data)}\n{ful_data.columns}")
+    # > Train regression models on the imputed datasets respectively
+    # > X_train, Y_train = xtraintest(imputed_data[0])
+    m1 = traintestmodel(xtraintest(imputed_data[0]), "KNN")
+    m2 = traintestmodel(xtraintest(imputed_data[1]), "MICE")
+
     pass
