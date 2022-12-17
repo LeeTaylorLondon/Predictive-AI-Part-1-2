@@ -15,8 +15,8 @@ pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', None)
 
 # > Read datasets
-mar_data = pd.read_csv("houses_0.5_MAR.csv")
-ful_data = pd.read_csv("houses.csv")
+mar_data = pd.read_csv("Data/houses_0.5_MAR.csv")
+ful_data = pd.read_csv("Data/houses.csv")
 all_data = [mar_data, ful_data]
 
 # print(mar_data.shape)
@@ -69,9 +69,9 @@ def xtraintest(imputed_dataset, target='median_house_value', debug=False):
 # > Original complete dataset into train & test datasets
 X_test = ful_data_omitted.copy().drop('median_house_value', axis=1)
 Y_test = ful_data_omitted['median_house_value']
-print(f"Shapes:\n"
-      f"X_test -> {X_test.shape}\n"
-      f"Y_test -> {Y_test.shape}")
+# print(f"Shapes:\n"
+#       f"X_test -> {X_test.shape}\n"
+#       f"Y_test -> {Y_test.shape}")
 
 def print_execution_time(func):
     def wrapper(*args, **kwargs):
@@ -86,9 +86,9 @@ def print_execution_time(func):
 def traintestmodel(tup, iname):
     """ Create, train, and evaluate a regression model """
     X_train, Y_train = tup[0], tup[1]
-    print(f"\ntraintestmodel()\n"
-          f"X_train.shape {X_train.shape}\n"
-          f"Y_train.shape {Y_train.shape}\n")
+    # print(f"\ntraintestmodel()\n"
+    #       f"X_train.shape {X_train.shape}\n"
+    #       f"Y_train.shape {Y_train.shape}\n")
     # Create reproducible regression model
     np.random.seed(100)
     clf = LinearRegression()
